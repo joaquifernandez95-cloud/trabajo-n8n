@@ -1,0 +1,384 @@
+{
+  "name": "My workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "centro-estetica",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.2,
+      "position": [
+        0,
+        0
+      ],
+      "id": "b2ca5e86-eb1c-4268-8e7f-0cc76c5cc521",
+      "name": "Webhook",
+      "webhookId": "d336fb90-9bed-4412-b3f4-63d98d4ba174"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { \"respuesta\": $json.output } }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        1024,
+        -16
+      ],
+      "id": "1e8cd25d-35eb-48ee-bf00-b6a249cf5943",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1Alvjes8MPeIGYQ4hdErEZoeuQVtvpHFMXq99R4PAV3k",
+          "mode": "list",
+          "cachedResultName": "Hoja de cálculo sin título",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1Alvjes8MPeIGYQ4hdErEZoeuQVtvpHFMXq99R4PAV3k/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "tratamientos ",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1Alvjes8MPeIGYQ4hdErEZoeuQVtvpHFMXq99R4PAV3k/edit#gid=0"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        192,
+        0
+      ],
+      "id": "0a6a08c8-6e18-483f-a347-1705a40f421b",
+      "name": "Get row(s) in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "KtzKpSXs3vPshooa",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ 'Mensaje del cliente: ' + $('Webhook').first().json.body.mensaje + '\\n\\nCatálogo de tratamientos: ' + JSON.stringify($json.tratamientos) }}",
+        "options": {
+          "systemMessage": "Sos un asistente virtual de un centro de estética.\n\nTu función es atender consultas de clientes sobre tratamientos, precios, duración y solicitudes de turnos.\n\nINSTRUCCIONES:\n\n1. Respondé siempre de manera cordial, clara y profesional.\n2. Utilizá exclusivamente la información proporcionada por Google Sheets para informar precios, tratamientos y duración.\n3. Nunca inventes precios, tratamientos ni horarios disponibles.\n4. Si un cliente quiere reservar un turno, solicitá o confirmá el día y horario deseados.\n5. No confirmes reservas reales. Aclarale al cliente que su solicitud será revisada por el centro de estética.\n6. Si falta información, hacé una pregunta para obtenerla.\n7. No inventes información que no figure en los datos disponibles.\n8. Respondé siempre en español.\n\nTu objetivo es brindar una buena atención y recopilar correctamente las solicitudes de los clientes."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        544,
+        -16
+      ],
+      "id": "a72819cd-5d12-46cb-913f-a2597437f438",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-5-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        592,
+        192
+      ],
+      "id": "fb776e36-e0d0-4e3b-bb94-f8d14ffd76a5",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": null,
+          "name": "",
+          "__aiGatewayManaged": true
+        }
+      }
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "destinationFieldName": "tratamientos",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        384,
+        0
+      ],
+      "id": "0af16e50-2d06-4127-9b02-7b85e5969566",
+      "name": "Aggregate"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1Alvjes8MPeIGYQ4hdErEZoeuQVtvpHFMXq99R4PAV3k",
+          "mode": "list",
+          "cachedResultName": "Hoja de cálculo sin título",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1Alvjes8MPeIGYQ4hdErEZoeuQVtvpHFMXq99R4PAV3k/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 2074351206,
+          "mode": "list",
+          "cachedResultName": "consultas",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1Alvjes8MPeIGYQ4hdErEZoeuQVtvpHFMXq99R4PAV3k/edit#gid=2074351206"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "fecha": "={{ $now.toFormat('dd/MM/yyyy HH:mm') }}",
+            "cliente": "={{ $('Webhook').first().json.body.nombre }}",
+            "telefono": "={{ $('Webhook').first().json.body.telefono }}",
+            "consulta ": "={{ $('Webhook').first().json.body.mensaje }}",
+            "respuesta": "={{ $('AI Agent').first().json.output }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "fecha",
+              "displayName": "fecha",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "cliente",
+              "displayName": "cliente",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "telefono",
+              "displayName": "telefono",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "consulta ",
+              "displayName": "consulta ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "respuesta",
+              "displayName": "respuesta",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        864,
+        -16
+      ],
+      "id": "8b0a48e0-8eca-4ad5-a8bd-d74cd034b2cc",
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "KtzKpSXs3vPshooa",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "entrada mediante webhook\n",
+        "height": 208,
+        "width": 150
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -32,
+        -80
+      ],
+      "typeVersion": 1,
+      "id": "4c029ab7-76ca-45a8-98a5-bd23ceb33e19",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "segundo origen",
+        "height": 224,
+        "width": 150
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        160,
+        -80
+      ],
+      "typeVersion": 1,
+      "id": "a06ade6a-9481-4373-8916-0503ecef614d",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "procesamiento con ia \n",
+        "height": 400,
+        "width": 256
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        528,
+        -80
+      ],
+      "typeVersion": 1,
+      "id": "c8494324-81ae-4ede-8c7b-7ccdcc4b2c35",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "content": "Consulta de tratamientos y precios. Registro de consultas en Sheets",
+        "height": 272,
+        "width": 150
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        832,
+        -128
+      ],
+      "typeVersion": 1,
+      "id": "9df2bccc-7f40-473f-8d9b-f7a9eed9d86b",
+      "name": "Sticky Note3"
+    },
+    {
+      "parameters": {
+        "content": "Respuesta automática al cliente",
+        "height": 224,
+        "width": 150
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1008,
+        -96
+      ],
+      "typeVersion": 1,
+      "id": "b5bb3fe0-51a6-47dc-bfbe-c40acd9b74f7",
+      "name": "Sticky Note4"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Respond to Webhook": {
+      "main": [
+        []
+      ]
+    },
+    "Get row(s) in sheet": {
+      "main": [
+        [
+          {
+            "node": "Aggregate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append row in sheet": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "50f756f3-7b6a-4ab9-b6bd-4be41cd256b2",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "3e758ad9549478a7b73ffe9c5014060be63ff8a4621662690576c8273df409fe"
+  },
+  "nodeGroups": [],
+  "id": "RsH6iGuPQWxm8pz4",
+  "tags": []
+}
